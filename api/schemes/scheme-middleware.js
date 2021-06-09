@@ -9,13 +9,13 @@ const Scheme = require('../schemes/scheme-model');
   }
 */
 const checkSchemeId = (req, res, next) => {
-  const { id } = req.params;
-  Scheme.findById(id)
+  const { scheme_id } = req.params;
+  Scheme.findById(scheme_id)
     .then((scheme) => {
       if (!scheme) {
         res
           .status(404)
-          .json({ message: `scheme with scheme_id ${id} not found` });
+          .json({ message: `scheme with scheme_id ${scheme_id} not found` });
       } else {
         req.scheme = scheme;
         next();
@@ -32,7 +32,19 @@ const checkSchemeId = (req, res, next) => {
     "message": "invalid scheme_name"
   }
 */
-const validateScheme = (req, res, next) => {};
+const validateScheme = (req, res, next) => {
+  const { scheme_name } = req.body;
+  if (
+    !scheme_name ||
+    typeof scheme_name !== 'string' ||
+    scheme_name.trim().length === 0
+  ) {
+    res.status(400).json({ message: 'invalid scheme_name' });
+  } else {
+    req.scheme = req.body;
+    next();
+  }
+};
 
 /*
   If `instructions` is missing, empty string or not a string, or
