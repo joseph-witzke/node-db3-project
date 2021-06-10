@@ -1,4 +1,6 @@
+const { restart } = require('nodemon');
 const Scheme = require('../schemes/scheme-model');
+const db = require('../../data/db-config');
 
 /*
   If `scheme_id` does not exist in the database:
@@ -8,20 +10,37 @@ const Scheme = require('../schemes/scheme-model');
     "message": "scheme with scheme_id <actual id> not found"
   }
 */
-const checkSchemeId = (req, res, next) => {
-  const { scheme_id } = req.params;
-  Scheme.findById(scheme_id)
-    .then((scheme) => {
-      if (!scheme) {
-        res
-          .status(404)
-          .json({ message: `scheme with scheme_id ${scheme_id} not found` });
-      } else {
-        req.scheme = scheme;
-        next();
-      }
-    })
-    .catch(next);
+// const checkSchemeId = (req, res, next) => {
+//   const { scheme_id } = req.params;
+//   Scheme.findById(scheme_id)
+//     .then((scheme) => {
+//       if (!scheme) {
+//         res
+//           .status(404)
+//           .json({ message: `scheme with scheme_id ${scheme_id} not found` });
+//       } else {
+//         req.scheme = scheme;
+//         next();
+//       }
+//     })
+//     .catch(next);
+// };
+
+const checkSchemeId = async (req, res, next) => {
+  try {
+    const exists = await db('schemes')
+      .where('scheme_id', req.params.scheme_id)
+      .first();
+    if (!exists) {
+      res.status(404).json({
+        message: `scheme with scheme_id ${req.params.scheme_id} not found`,
+      });
+    } else {
+      next();
+    }
+  } catch (err) {
+    next(err);
+  }
 };
 
 /*
@@ -55,7 +74,20 @@ const validateScheme = (req, res, next) => {
     "message": "invalid step"
   }
 */
-const validateStep = (req, res, next) => {};
+const validateStep = (req, res, next) => {
+  const { instructions, step_number } = req.body;
+  if (
+    !instructions ||
+    typeof instructions !== 'string' ||
+    instructions.trim().length === 0 ||
+    typeof step_number !== 'number' ||
+    step_number < 1
+  ) {
+    res.status(400).json({ message: 'invalid step' });
+  } else {
+    next();
+  }
+};
 
 module.exports = {
   checkSchemeId,
