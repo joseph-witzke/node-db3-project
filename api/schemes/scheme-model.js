@@ -137,7 +137,7 @@ async function findSteps(scheme_id) {
         }
       ]
   */
-  const rows = await db('schemes')
+  const rows = await db('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
     .select('st.step_id', 'st.step_number', 'instructions', 'sc.scheme_id')
     .where('sc.scheme_id', scheme_id)
@@ -152,6 +152,11 @@ function add(scheme) {
   /*
     1D- This function creates a new scheme and resolves to _the newly created scheme_.
   */
+  return db('schemes')
+    .insert(scheme)
+    .then(([scheme_id]) => {
+      return db('schemes').where('scheme_id', scheme_id).first();
+    });
 }
 
 function addStep(scheme_id, step) {
