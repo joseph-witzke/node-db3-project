@@ -1,5 +1,4 @@
 const { restart } = require('nodemon');
-const Scheme = require('../schemes/scheme-model');
 const db = require('../../data/db-config');
 
 /*
